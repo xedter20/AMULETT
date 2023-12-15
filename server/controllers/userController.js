@@ -8,18 +8,20 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  query,
+  where
 } from 'firebase/firestore';
 
 const db = getFirestore(firebase);
-
+import { v4 as uuidv4 } from 'uuid';
 //get get all users
 
 export const createUser = async (req, res, next) => {
   try {
     const data = req.body;
 
-    await addDoc(collection(db, 'users'), data);
+    await addDoc(collection(db, 'users'), { ...data, id: uuidv4() });
     res.status(200).json({
       success: true,
       message: 'created_successfully'
@@ -41,6 +43,28 @@ export const getAllUsers = async (req, res, next) => {
     });
 
     res.status(200).send(userList);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
+export const getUser = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+
+    const queryUser = query(collection(db, 'users'), where('id', '==', userId));
+
+    const querySnapshot = await getDocs(queryUser);
+    let user = {};
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      user = doc.data();
+    });
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
   } catch (error) {
     res.status(400).send(error.message);
   }
