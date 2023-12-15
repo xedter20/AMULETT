@@ -110,7 +110,7 @@ function ProfileSettings(props) {
           }) => {
             console.log({ values });
             return (
-              <TitleCard title="Profile" topMargin="mt-0">
+              <TitleCard title="Member Information" topMargin="mt-0">
                 <div className="flex flex-wrap">
                   <div className="w-full">
                     <ul
@@ -121,7 +121,7 @@ function ProfileSettings(props) {
                           className={
                             'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                             (openTab === 1
-                              ? 'text-white bg-green-600 rounded-lg shadow-lg'
+                              ? 'text-white bg-green-500 rounded-lg shadow-lg'
                               : 'text-green-500 bg-green-50 shadow-md')
                           }
                           onClick={e => {
@@ -139,7 +139,7 @@ function ProfileSettings(props) {
                           className={
                             'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                             (openTab === 2
-                              ? 'text-white bg-green-600 rounded-lg shadow-lg'
+                              ? 'text-white bg-green-500 rounded-lg shadow-lg'
                               : 'text-green-500 bg-green-50 shadow-md')
                           }
                           onClick={e => {
@@ -157,7 +157,7 @@ function ProfileSettings(props) {
                           className={
                             'text-xs font-bold uppercase px-5 py-3 shadow-sm rounded block leading-normal ' +
                             (openTab === 3
-                              ? 'text-white bg-green-600 rounded-lg shadow-lg'
+                              ? 'text-white bg-green-500 rounded-lg shadow-lg'
                               : 'text-green-500 bg-green-50 shadow-md')
                           }
                           onClick={e => {
