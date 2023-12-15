@@ -3,15 +3,18 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { showNotification } from '../common/headerSlice';
 import TitleCard from '../../components/Cards/TitleCard';
-import { RECENT_TRANSACTIONS } from '../../utils/dummyData';
+// import { RECENT_TRANSACTIONS } from '../../utils/dummyData';
 import FunnelIcon from '@heroicons/react/24/outline/FunnelIcon';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import SearchBar from '../../components/Input/SearchBar';
 
+import axios from 'axios';
+
 const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
   const [filterParam, setFilterParam] = useState('');
   const [searchText, setSearchText] = useState('');
-  const locationFilters = ['Paris', 'London', 'Canada', 'Peru', 'Tokyo'];
+
+  const locationFilters = [''];
 
   const showFiltersAndApply = params => {
     applyFilter(params);
@@ -25,7 +28,7 @@ const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
   };
 
   useEffect(() => {
-    if (searchText == '') {
+    if (searchText === '') {
       removeAppliedFilter();
     } else {
       applySearch(searchText);
@@ -47,7 +50,7 @@ const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
           <XMarkIcon className="w-4 ml-2" />
         </button>
       )}
-      <div className="dropdown dropdown-bottom dropdown-end">
+      {/* <div className="dropdown dropdown-bottom dropdown-end">
         <label tabIndex={0} className="btn btn-sm btn-outline">
           <FunnelIcon className="w-5 mr-2" />
           Filter
@@ -67,34 +70,52 @@ const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
             <a onClick={() => removeAppliedFilter()}>Remove Filter</a>
           </li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };
 
 function Transactions() {
-  const [trans, setTrans] = useState(RECENT_TRANSACTIONS);
+  const [users, setUser] = useState([]);
 
-  const removeFilter = () => {
-    setTrans(RECENT_TRANSACTIONS);
+  const fetchUsers = async () => {
+    let res = await axios({
+      method: 'GET',
+      url: 'user/list'
+    });
+    let list = res.data;
+    setUser(list);
+  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const removeFilter = async () => {
+    let res = await axios({
+      method: 'GET',
+      url: 'user/list'
+    });
+    let list = res.data;
+    setUser(list);
   };
 
   const applyFilter = params => {
-    let filteredTransactions = RECENT_TRANSACTIONS.filter(t => {
-      return t.location == params;
+    let filteredUsers = users.filter(t => {
+      return t.address === params;
     });
-    setTrans(filteredTransactions);
+    setUser(filteredUsers);
   };
 
   // Search according to name
   const applySearch = value => {
-    let filteredTransactions = RECENT_TRANSACTIONS.filter(t => {
+    let filteredUsers = users.filter(t => {
       return (
         t.email.toLowerCase().includes(value.toLowerCase()) ||
-        t.email.toLowerCase().includes(value.toLowerCase())
+        t.firstName.toLowerCase().includes(value.toLowerCase()) ||
+        t.lastName.toLowerCase().includes(value.toLowerCase())
       );
     });
-    setTrans(filteredTransactions);
+    setUser(filteredUsers);
   };
 
   return (
@@ -115,32 +136,39 @@ function Transactions() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Email Id</th>
-                <th>Location</th>
-                <th>Amount</th>
-                <th>Transaction Date</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Amulet Package</th>
+                <th>Date Signed</th>
+                <th>Action(s)</th>
               </tr>
             </thead>
             <tbody>
-              {trans.map((l, k) => {
+              {users.map((l, k) => {
                 return (
                   <tr key={k}>
                     <td>
                       <div className="flex items-center space-x-3">
                         <div className="avatar">
-                          <div className="mask mask-circle w-12 h-12">
-                            <img src={l.avatar} alt="Avatar" />
+                          <div className="mask mask-circle w-12 h-20">
+                            <img
+                              src="https://img.freepik.com/premium-vector/young-smiling-man-avatar-man-with-brown-beard-mustache-hair-wearing-yellow-sweater-sweatshirt-3d-vector-people-character-illustration-cartoon-minimal-style_365941-860.jpg?w=740"
+                              alt="Avatar"
+                            />
                           </div>
                         </div>
+
                         <div>
-                          <div className="font-bold">{l.name}</div>
+                          <div className="font-bold">
+                            {l.firstName} {l.lastName}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td>{l.email}</td>
-                    <td>{l.location}</td>
-                    <td>${l.amount}</td>
-                    <td>{moment(l.date).format('D MMM')}</td>
+                    <td>{l.address}</td>
+                    <td>{l.amulet_package}</td>
+                    <td>{moment(l.date_sign).format('MMM D YYYY')}</td>
                   </tr>
                 );
               })}

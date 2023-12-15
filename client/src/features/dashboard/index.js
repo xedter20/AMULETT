@@ -18,27 +18,27 @@ import { useState } from 'react';
 const statsData = [
   {
     title: 'New Users',
-    value: '34.7k',
+    value: '100',
     icon: <UserGroupIcon className="w-8 h-8" />,
-    description: '↗︎ 2300 (22%)'
+    description: ''
   },
   {
-    title: 'Total Sales',
-    value: '$34,545',
+    title: 'Total Income',
+    value: 'Php 500',
     icon: <CreditCardIcon className="w-8 h-8" />,
-    description: 'Current month'
+    description: ''
   },
   {
     title: 'Pending Leads',
     value: '450',
     icon: <CircleStackIcon className="w-8 h-8" />,
-    description: '50 in hot leads'
+    description: ''
   },
   {
     title: 'Active Users',
-    value: '5.6k',
+    value: '50',
     icon: <UsersIcon className="w-8 h-8" />,
-    description: '↙ 300 (18%)'
+    description: ''
   }
 ];
 

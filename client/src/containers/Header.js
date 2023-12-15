@@ -102,7 +102,7 @@ function Header() {
                 <img
                   className="mask mask-squircle w-10"
                   src="/user.png"
-                  alt="DashWind Logo"
+                  alt="Logo"
                 />
                 D
               </div>

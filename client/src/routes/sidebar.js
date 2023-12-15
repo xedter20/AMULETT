@@ -35,7 +35,7 @@ const routes = [
   //   name: 'Leads' // name that appear in Sidebar
   // },
   {
-    path: '/app/transactions', // url
+    path: '/app/users', // url
     icon: <UsersIcon className={iconClasses} />, // icon component
     name: 'Users' // name that appear in Sidebar
   }

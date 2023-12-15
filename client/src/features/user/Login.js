@@ -17,6 +17,9 @@ import {
   mdiVanityLight,
   mdiLockOutline
 } from '@mdi/js';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 function Login() {
   const INITIAL_LOGIN_OBJ = {
     password: '',
@@ -43,17 +46,44 @@ function Login() {
         .min(8, 'Minimun of 8 character(s)')
         .required('Required field')
     }),
-    onSubmit: values => {
-      setErrorMessage('');
+    onSubmit: async (
+      values,
+      { setSubmitting, setFieldValue, setErrorMessage, setErrors }
+    ) => {
+      try {
+        let res = await axios({
+          method: 'POST',
+          url: 'auth/login',
+          data: values
+        });
 
-      localStorage.setItem('token', 'DumyTokenHere');
-      setLoading(false);
-      window.location.href = '/app/dashboard';
+        let { token } = res.data;
+
+        localStorage.setItem('token', token);
+        window.location.href = '/app/dashboard';
+      } catch (error) {
+        toast.error(`Login Failed. Unknown User.`, {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
+      }
+
+      // setErrorMessage('');
+      // localStorage.setItem('token', 'DumyTokenHere');
+      // setLoading(false);
+      // window.location.href = '/app/dashboard';
     }
   };
 
   return (
     <div className="min-h-screen bg-base-200 flex items-center">
+      <ToastContainer />
       <div className="card mx-auto w-full max-w-2xl  shadow-xl">
         <div
           className="grid  md:grid-cols-1 grid-cols-1  bg-base-100 rounded-xl 

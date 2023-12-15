@@ -165,7 +165,7 @@ function Login() {
 
          ">
           <div className="p-2 space-y-4 md:space-y-6 sm:p-4">
-            {/* <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            {/* <h1 className="text-md font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
               Register
             </h1> */}
             <Formik {...formikConfig}>

@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 
 import config from './config.js';
-import productRoute from './routes/productRoute.js';
+
 import userRoute from './routes/userRoute.js';
+import authRoute from './routes/auth.js';
 import bodyParser from 'body-parser';
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(express.json());
 
 //routes
 app.use('/api/user', userRoute);
+app.use('/api/auth', authRoute);
 
 // app.use('/', async (req, res, next) => {
 //   res.json('Hello from server');

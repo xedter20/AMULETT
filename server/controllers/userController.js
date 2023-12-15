@@ -31,19 +31,16 @@ export const createUser = async (req, res, next) => {
 
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await getDocs(collection(db, 'users'));
-    const list = [];
-
-    if (users.empty) {
-      res.status(400).send('No Users found');
-    } else {
-      users.forEach(doc => {
-        const u = new userModel(doc.id, doc.data().name);
-        list.push(u);
+    const userList = [];
+    const queryUsers = await getDocs(collection(db, 'users'));
+    queryUsers.forEach(doc => {
+      userList.push({
+        id: doc.id,
+        ...doc.data()
       });
+    });
 
-      res.status(200).send(list);
-    }
+    res.status(200).send(userList);
   } catch (error) {
     res.status(400).send(error.message);
   }

@@ -1,7 +1,7 @@
-class Product {
+class User {
   constructor(id, name) {
     (this.id = id), (this.name = name);
   }
 }
 
-export default Product;
+export default User;
