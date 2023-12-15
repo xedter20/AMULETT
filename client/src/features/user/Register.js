@@ -4,6 +4,7 @@ import LandingIntro from './LandingIntro';
 import ErrorText from '../../components/Typography/ErrorText';
 import InputText from '../../components/Input/InputText';
 import RadioText from '../../components/Input/Radio';
+import Dropdown from '../../components/Input/Dropdown';
 import { Formik, useField, useFormik, Form } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -39,7 +40,30 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { debounce } from 'lodash';
+
 function Login() {
+  const [emailError, setEmailError] = useState('');
+
+  const [users, setUser] = useState([]);
+
+  const fetchUsers = async () => {
+    let res = await axios({
+      method: 'GET',
+      url: 'user/list'
+    });
+    let list = res.data.map(({ id, firstName, lastName }) => {
+      return {
+        value: id,
+        label: `${firstName} ${lastName}`
+      };
+    });
+    setUser(list);
+  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const amulet_packageSelection = [
     {
       label: 'SGEP 8 Package',
@@ -58,6 +82,63 @@ function Login() {
       value: 'sgep_100'
     }
   ];
+
+  let firstValidation = [];
+  let secondValidation = [];
+
+  let validation = [];
+  const debouncedEmailValidation = debounce(
+    async (value, setFieldError, errors, setErrors) => {
+      if (!errors.email) {
+        let res = await axios({
+          method: 'POST',
+          url: 'user/isEmailExist',
+          data: {
+            email: value
+          }
+        });
+
+        const isExist = res.data.isEmailExist;
+
+        console.log({ isExist });
+        if (isExist) {
+          setEmailError('Email already exists');
+          setFieldError('email', 'Email already exists');
+          // errors.email = 'Email already exists';
+          // setErrors({
+          //   email: 'Email already exists'
+          // });
+        } else {
+          // setFieldError('email', '');
+        }
+      }
+    },
+    600,
+    {
+      trailing: true
+    }
+  );
+  const debouncedUserNameValidation = debounce(
+    async (value, setFieldError, errors) => {
+      // let res = await axios({
+      //   method: 'POST',
+      //   url: 'user/isUserNameExist',
+      //   data: {
+      //     userName: value
+      //   }
+      // });
+      // const isExist = res.data.isUserNameExist;
+      // if (isExist) {
+      //   setFieldError('userName', 'Username already exists');
+      // } else {
+      //   setFieldError('userName', '');
+      // }
+    },
+    600,
+    {
+      trailing: true
+    }
+  );
 
   const formikConfig = {
     initialValues: {
@@ -115,6 +196,8 @@ function Login() {
       signature: Yup.string().required('Required'),
       date_sign: Yup.string().required('Required')
     }),
+    // validateOnMount: true,
+    // validateOnChange: false,
     onSubmit: async values => {
       let memberData = values;
 
@@ -152,11 +235,6 @@ function Login() {
       }
     }
   };
-
-  let firstValidation = [];
-  let secondValidation = [];
-
-  let validation = [];
   return (
     <div className="min-h-screen bg-base-200 flex items-center">
       <div className="card mx-auto w-full max-w-4xl  shadow-xl">
@@ -178,7 +256,9 @@ function Login() {
                 errors,
                 submitForm,
                 setFieldTouched,
-                setFieldValue
+                setFieldValue,
+                setFieldError,
+                setErrors
               }) => {
                 const checkValidateTab = () => {
                   // submitForm();
@@ -225,6 +305,26 @@ function Login() {
                     ];
                   }
                 };
+
+                const handleEmailChange = e => {
+                  handleChange(e);
+                  debouncedEmailValidation(
+                    e.target.value,
+                    setFieldError,
+                    errors,
+                    setErrors
+                  );
+                };
+
+                const handleUserNameChange = e => {
+                  handleChange(e);
+                  debouncedUserNameValidation(
+                    e.target.value,
+                    setFieldError,
+                    errors
+                  );
+                };
+
                 return (
                   <FormWizard
                     onComplete={() => {
@@ -294,6 +394,19 @@ function Login() {
                       isValid={checkValidateTab()}
                       errorMessages={errorMessages}>
                       <Form className="">
+                        <InputText
+                          icons={mdiEmailCheckOutline}
+                          label="Email Address"
+                          name="email"
+                          type="email"
+                          placeholder=""
+                          value={values.email}
+                          onBlur={async e => {
+                            await handleEmailChange(e);
+                            await handleBlur(e);
+                          }}
+                          // onChange={handleEmailChange}
+                        />
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                           <InputText
                             icons={mdiAccount}
@@ -302,7 +415,10 @@ function Login() {
                             type="text"
                             placeholder=""
                             value={values.userName}
-                            onBlur={handleBlur} // This apparently updates `touched`?
+                            onBlur={e => {
+                              handleBlur(e);
+                              handleUserNameChange(e);
+                            }}
                           />
                           <InputText
                             icons={mdiLockOutline}
@@ -372,14 +488,21 @@ function Login() {
                             value={values.age}
                             onBlur={handleBlur} // This apparently updates `touched`?
                           />
-                          <InputText
+                          <Dropdown
                             icons={mdiAccount}
                             label="Civil Status"
                             name="civilStatus"
                             type="text"
                             placeholder=""
                             value={values.civilStatus}
-                            onBlur={handleBlur} // This apparently updates `touched`?
+                            setFieldValue={setFieldValue}
+                            onBlur={handleBlur}
+                            options={[
+                              { value: 'single', label: 'Single' },
+                              { value: 'married', label: 'Married' },
+                              { value: 'divorced', label: 'Divorced' },
+                              { value: 'widowed', label: 'Widowed' }
+                            ]}
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
@@ -402,15 +525,7 @@ function Login() {
                             onBlur={handleBlur} // This apparently updates `touched`?
                           />
                         </div>
-                        <InputText
-                          icons={mdiEmailCheckOutline}
-                          label="Email Address"
-                          name="email"
-                          type="email"
-                          placeholder=""
-                          value={values.email}
-                          onBlur={handleBlur} // This apparently updates `touched`?
-                        />
+
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                           <InputText
                             icons={mdiAccountHeartOutline}
@@ -456,7 +571,21 @@ function Login() {
                       icon="ti-user">
                       <Form className="">
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
+                          <Dropdown
+                            // icons={mdiAccount}
+                            label="Sponsor Name"
+                            name="sponsorName"
+                            type="text"
+                            placeholder=""
+                            value={values.sponsorName}
+                            setFieldValue={setFieldValue}
+                            onBlur={handleBlur}
+                            options={users}
+                            affectedInput="sponsorIdNumber"
+                            affectedInputValue="id"
+                          />
+
+                          {/* <InputText
                             icons={mdiAccount}
                             label="Sponsor Name"
                             name="sponsorName"
@@ -464,7 +593,7 @@ function Login() {
                             placeholder=""
                             value={values.sponsorName}
                             onBlur={handleBlur} // This apparently updates `touched`?
-                          />
+                          /> */}
                           <InputText
                             icons={mdiAccount}
                             label="Sponsor ID Number"
@@ -472,18 +601,23 @@ function Login() {
                             type="text"
                             placeholder=""
                             value={values.sponsorIdNumber}
+                            disabled
                             onBlur={handleBlur} // This apparently updates `touched`?
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
-                          <InputText
-                            icons={mdiAccount}
+                          <Dropdown
+                            // icons={mdiAccount}
                             label="Placement Name"
                             name="placementName"
                             type="text"
                             placeholder=""
                             value={values.placementName}
-                            onBlur={handleBlur} // This apparently updates `touched`?
+                            onBlur={handleBlur}
+                            options={users}
+                            setFieldValue={setFieldValue}
+                            affectedInput="placementIdNumber"
+                            affectedInputValue="id"
                           />
                           <InputText
                             icons={mdiAccount}
@@ -492,7 +626,8 @@ function Login() {
                             type="text"
                             placeholder=""
                             value={values.placementIdNumber}
-                            onBlur={handleBlur} // This apparently updates `touched`?
+                            onBlur={handleBlur}
+                            disabled
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">

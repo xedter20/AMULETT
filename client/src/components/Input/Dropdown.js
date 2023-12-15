@@ -2,15 +2,21 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Formik, Form, useField } from 'formik';
 import * as Yup from 'yup';
-import Icon from './../Icon/index.tsx';
+import Icon from '../Icon/index.tsx';
+
+import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 
 const MyTextInput = ({
   label,
   icons,
   hasTextareaHeight,
   labelFor,
+  options,
+  affectedInput,
   ...props
 }) => {
+  console.log({ options });
   // useField() returns [formik.getFieldProps(), formik.getFieldMeta()]
   // which we can spread on <input>. We can use field meta to show an error
   // message if the field is invalid and it has been touched (i.e. visited)
@@ -26,7 +32,6 @@ const MyTextInput = ({
     props.isBorderless ? 'border-0' : 'border',
     props.isTransparent ? 'bg-transparent' : 'bg-white dark:bg-slate-800',
 
-    'rounded-lg',
     ''
   ].join(' ');
 
@@ -42,7 +47,20 @@ const MyTextInput = ({
           </label>
         )}
         <div className="relative">
-          <input
+          <CreatableSelect
+            classNames={{
+              control: () => `${controlClassName}`
+            }}
+            options={options}
+            onChange={({ value }) => {
+              if (affectedInput) {
+                console.log({ affectedInput, value });
+                props.setFieldValue(affectedInput, value);
+              }
+              props.setFieldValue(props.name, value);
+            }}
+          />
+          {/* <input
             className={`${controlClassName} pl-10`}
             {...field}
             {...props}
@@ -52,7 +70,7 @@ const MyTextInput = ({
             w="w-10"
             h={hasTextareaHeight ? 'h-full' : 'h-12'}
             className="absolute top-0 left-0 z-10 pointer-events-none text-gray-500 dark:text-slate-400"
-          />
+          /> */}
         </div>
         {meta.touched && meta.error ? (
           <div className="text-xs text-left text-red-500 dark:text-red-400 mt-1">

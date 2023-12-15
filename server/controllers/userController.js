@@ -70,4 +70,54 @@ export const getUser = async (req, res, next) => {
   }
 };
 
+export const isEmailExist = async (req, res, next) => {
+  try {
+    const email = req.body.email;
+
+    const queryUser = query(
+      collection(db, 'users'),
+      where('email', '==', email)
+    );
+
+    const querySnapshot = await getDocs(queryUser);
+    let user = {};
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      user = doc.data();
+    });
+
+    res.status(200).json({
+      success: true,
+      isEmailExist: !!user.email
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
+export const isUserNameExist = async (req, res, next) => {
+  try {
+    const userName = req.body.userName;
+
+    const queryUser = query(
+      collection(db, 'users'),
+      where('userName', '==', userName)
+    );
+
+    const querySnapshot = await getDocs(queryUser);
+    let user = {};
+    querySnapshot.forEach(doc => {
+      // doc.data() is never undefined for query doc snapshots
+      user = doc.data();
+    });
+
+    res.status(200).json({
+      success: true,
+      isUserNameExist: !!user.email
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
 //

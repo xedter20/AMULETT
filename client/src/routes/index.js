@@ -50,13 +50,10 @@ const routes = [
     component: ProfileSettings
   },
   {
-    path: '/settings-billing',
-    component: Bills
+    path: '/settings-profile/:slug',
+    component: ProfileSettings
   },
-  {
-    path: '/getting-started',
-    component: GettingStarted
-  },
+
   {
     path: '/features',
     component: DocFeatures

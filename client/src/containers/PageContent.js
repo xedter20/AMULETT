@@ -35,6 +35,7 @@ function PageContent() {
                   exact={true}
                   path={`${route.path}`}
                   element={<route.component />}
+                  // render={props => <route.component {...props} />}
                 />
               );
             })}

@@ -7,9 +7,10 @@ import TitleCard from '../../components/Cards/TitleCard';
 import FunnelIcon from '@heroicons/react/24/outline/FunnelIcon';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import SearchBar from '../../components/Input/SearchBar';
-
+import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
-
+import ViewColumnsIcon from '@heroicons/react/24/outline/EyeIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
   const [filterParam, setFilterParam] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -136,7 +137,7 @@ function Transactions() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Email</th>
+                {/* <th>Email</th> */}
                 <th>Address</th>
                 <th>Amulet Package</th>
                 <th>Date Signed</th>
@@ -165,10 +166,24 @@ function Transactions() {
                         </div>
                       </div>
                     </td>
-                    <td>{l.email}</td>
+                    {/* <td>{l.email}</td> */}
                     <td>{l.address}</td>
                     <td>{l.amulet_package}</td>
                     <td>{moment(l.date_sign).format('MMM D YYYY')}</td>
+                    <td>
+                      <div className="flex">
+                        <Link to={`/app/settings-profile/user?userId=${l.id}`}>
+                          <button className="btn btn-sm">
+                            View
+                            <ViewColumnsIcon className="h-4 w-4 text-blue-500" />
+                          </button>
+                        </Link>{' '}
+                        <button className="btn btn-sm ml-2">
+                          Delete
+                          <TrashIcon className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
