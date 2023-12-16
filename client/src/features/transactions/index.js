@@ -10,6 +10,7 @@ import SearchBar from '../../components/Input/SearchBar';
 import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ViewColumnsIcon from '@heroicons/react/24/outline/EyeIcon';
+import PlusCircleIcon from '@heroicons/react/24/outline/PlusCircleIcon';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
   const [filterParam, setFilterParam] = useState('');
@@ -51,6 +52,12 @@ const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
           <XMarkIcon className="w-4 ml-2" />
         </button>
       )}
+      <Link to={`/app/addMember`}>
+        <button className="btn btn-sm">
+          Add Member
+          <PlusCircleIcon className="h-6 w-6 text-green-500" />
+        </button>
+      </Link>{' '}
       {/* <div className="dropdown dropdown-bottom dropdown-end">
         <label tabIndex={0} className="btn btn-sm btn-outline">
           <FunnelIcon className="w-5 mr-2" />

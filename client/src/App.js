@@ -22,9 +22,10 @@ initializeApp();
 // Check for login and initialize axios
 const token = checkAuth();
 
+console.log({ token });
+
 function App() {
   useEffect(() => {
-    // 👆 daisy UI themes initialization
     themeChange(false);
   }, []);
 
@@ -34,7 +35,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/register" element={<Register />} />
+          {/* <Route path="/register" element={<Register />} /> */}
 
           {/* Place new routes over this */}
           <Route path="/app/*" element={<Layout />} />

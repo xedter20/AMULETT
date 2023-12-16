@@ -1,7 +1,7 @@
 // All components mapping with path for internal routes
 
 import { lazy } from 'react';
-
+import checkAuth from '../app/auth';
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
 const Page404 = lazy(() => import('../pages/protected/404'));
@@ -19,65 +19,100 @@ const ProfileSettings = lazy(() =>
 const GettingStarted = lazy(() => import('../pages/GettingStarted'));
 const DocFeatures = lazy(() => import('../pages/DocFeatures'));
 const DocComponents = lazy(() => import('../pages/DocComponents'));
+const AddMember = lazy(() => import('../pages/protected/Leads'));
 
-const routes = [
-  {
-    path: '/dashboard', // the url
-    component: Dashboard // view rendered
-  },
-  {
-    path: '/welcome', // the url
-    component: Welcome // view rendered
-  },
-  {
-    path: '/leads',
-    component: Leads
-  },
-  {
-    path: '/settings-team',
-    component: Team
-  },
-  {
-    path: '/calendar',
-    component: Calendar
-  },
-  {
-    path: '/users',
-    component: Transactions
-  },
-  {
-    path: '/settings-profile',
-    component: ProfileSettings
-  },
-  {
-    path: '/settings-profile/:slug',
-    component: ProfileSettings
-  },
+const role = checkAuth();
 
-  {
-    path: '/features',
-    component: DocFeatures
-  },
-  {
-    path: '/components',
-    component: DocComponents
-  },
-  {
-    path: '/integration',
-    component: Integration
-  },
-  {
-    path: '/charts',
-    component: Charts
-  },
-  {
-    path: '/404',
-    component: Page404
-  },
-  {
-    path: '/blank',
-    component: Blank
-  }
-];
+let routes = [];
+if (role === 'admin') {
+  routes = [
+    {
+      path: '/dashboard', // the url
+      component: Dashboard // view rendered
+    },
+    {
+      path: '/welcome', // the url
+      component: Welcome // view rendered
+    },
+    {
+      path: '/leads',
+      component: Leads
+    },
+    {
+      path: '/settings-team',
+      component: Team
+    },
+    {
+      path: '/calendar',
+      component: Calendar
+    },
+    {
+      path: '/users',
+      component: Transactions
+    },
+    {
+      path: '/settings-profile',
+      component: ProfileSettings
+    },
+    {
+      path: '/settings-profile/:slug',
+      component: ProfileSettings
+    },
+    {
+      path: '/addMember',
+      component: AddMember
+    },
+
+    {
+      path: '/features',
+      component: DocFeatures
+    },
+    {
+      path: '/components',
+      component: DocComponents
+    },
+    {
+      path: '/integration',
+      component: Integration
+    },
+    {
+      path: '/charts',
+      component: Charts
+    },
+    {
+      path: '/404',
+      component: Page404
+    },
+    {
+      path: '/blank',
+      component: Blank
+    }
+  ];
+} else {
+  routes = [
+    {
+      path: '/dashboard', // the url
+      component: Dashboard // view rendered
+    },
+    {
+      path: '/welcome', // the url
+      component: Welcome // view rendered
+    },
+
+    {
+      path: '/settings-profile',
+      component: ProfileSettings
+    },
+
+    {
+      path: '/404',
+      component: Page404
+    },
+    {
+      path: '/blank',
+      component: Blank
+    }
+  ];
+}
 
 export default routes;

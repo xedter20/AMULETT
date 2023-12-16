@@ -44,7 +44,12 @@ router.post('/login', async (req, res, next) => {
     if (foundUser) {
       res.json({
         success: true,
-        token: 'token_should_be_initialize_here'
+        token: 'token_should_be_initialize_here',
+        data: {
+          role: foundUser.role,
+          id: foundUser.id,
+          email: foundUser.email
+        }
       });
     } else {
       return res.status(401).json({

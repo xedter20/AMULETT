@@ -42,6 +42,59 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { debounce } from 'lodash';
 
+function SolarUserLinear(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="w-6 h-6">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+      />
+    </svg>
+  );
+}
+function placementInfoIcon(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="w-6 h-6">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+      />
+    </svg>
+  );
+}
+
+function paymentInfoIcon(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="w-6 h-6">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
+      />
+    </svg>
+  );
+}
+
 function Login() {
   const [emailError, setEmailError] = useState('');
 
@@ -236,8 +289,8 @@ function Login() {
     }
   };
   return (
-    <div className="min-h-screen bg-base-200 flex items-center">
-      <div className="card mx-auto w-full max-w-4xl  shadow-xl">
+    <div className="">
+      <div className="mt-0">
         <div
           className="grid  md:grid-cols-1 grid-cols-1  bg-base-100 rounded-xl 
 
@@ -390,7 +443,7 @@ function Login() {
                     )}>
                     <FormWizard.TabContent
                       title="Personal Information"
-                      icon="ti-user"
+                      icon={SolarUserLinear()}
                       isValid={checkValidateTab()}
                       errorMessages={errorMessages}>
                       <Form className="">
@@ -568,7 +621,7 @@ function Login() {
                     </FormWizard.TabContent>
                     <FormWizard.TabContent
                       title="Placement Information"
-                      icon="ti-user">
+                      icon={placementInfoIcon()}>
                       <Form className="">
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                           <Dropdown
@@ -654,7 +707,7 @@ function Login() {
                     </FormWizard.TabContent>
                     <FormWizard.TabContent
                       title="Payment Information"
-                      icon="ti-user">
+                      icon={paymentInfoIcon()}>
                       <Form className="">
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-2 ">
                           <InputText
@@ -751,10 +804,6 @@ function Login() {
                 );
               }}
             </Formik>
-
-            <style>{`
-        @import url("https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css");
-      `}</style>
           </div>
         </div>
       </div>

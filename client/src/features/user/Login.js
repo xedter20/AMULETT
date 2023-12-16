@@ -58,8 +58,11 @@ function Login() {
         });
 
         let { token } = res.data;
+        let { role, id, email } = res.data.data;
 
-        localStorage.setItem('token', token);
+        // console.log({ role, id, email });
+
+        localStorage.setItem('token', role);
         window.location.href = '/app/dashboard';
       } catch (error) {
         toast.error(`Login Failed. Unknown User.`, {
@@ -132,14 +135,14 @@ function Login() {
                       Login
                     </button>
 
-                    <div className="text-sm font-light text-gray-500 dark:text-gray-400 mt-4">
+                    {/* <div className="text-sm font-light text-gray-500 dark:text-gray-400 mt-4">
                       Don't have an account yet?
                       <Link to="/register">
                         <span className="  inline-block  hover:text-primary hover:underline hover:cursor-pointer transition duration-200">
                           Register
                         </span>
                       </Link>
-                    </div>
+                    </div> */}
                   </Form>
                 );
               }}
