@@ -62,7 +62,8 @@ function Login() {
 
         // console.log({ role, id, email });
 
-        localStorage.setItem('token', role);
+        localStorage.setItem('token', JSON.stringify({ role, id, email }));
+
         window.location.href = '/app/dashboard';
       } catch (error) {
         toast.error(`Login Failed. Unknown User.`, {

@@ -20,9 +20,11 @@ const Register = lazy(() => import('./pages/Register'));
 initializeApp();
 
 // Check for login and initialize axios
-const token = checkAuth();
+const { id, email, role } = checkAuth();
 
-console.log({ token });
+console.log({ id, email, role });
+
+let token = id;
 
 function App() {
   useEffect(() => {

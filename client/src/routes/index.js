@@ -21,7 +21,7 @@ const DocFeatures = lazy(() => import('../pages/DocFeatures'));
 const DocComponents = lazy(() => import('../pages/DocComponents'));
 const AddMember = lazy(() => import('../pages/protected/Leads'));
 
-const role = checkAuth();
+const { role } = checkAuth();
 
 let routes = [];
 if (role === 'admin') {
