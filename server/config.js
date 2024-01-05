@@ -1,6 +1,19 @@
 import dotenv from 'dotenv';
 import assert from 'assert';
 
+import neo4j from 'neo4j-driver';
+
+let driver = neo4j.driver(
+  'neo4j://localhost',
+  neo4j.auth.basic('neo4j', 'password')
+);
+
+const serverInfo = await driver.getServerInfo();
+console.log('Connection established');
+console.log(serverInfo);
+
+let cypherQuerySession = driver;
+
 dotenv.config();
 
 const {
@@ -30,5 +43,6 @@ export default {
     messagingSenderId: '454615667579',
     appId: '1:454615667579:web:e265ff3388db8e9e9823de',
     measurementId: 'G-62HCJN3SH9'
-  }
+  },
+  cypherQuerySession
 };

@@ -3,6 +3,7 @@
 import { lazy } from 'react';
 import checkAuth from '../app/auth';
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
+const NetworkTree = lazy(() => import('../pages/protected/NetworkTree'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
 const Page404 = lazy(() => import('../pages/protected/404'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
@@ -24,11 +25,15 @@ const AddMember = lazy(() => import('../pages/protected/Leads'));
 const { role } = checkAuth();
 
 let routes = [];
-if (role === 'admin') {
+if (role === 'ADMIN') {
   routes = [
     {
       path: '/dashboard', // the url
       component: Dashboard // view rendered
+    },
+    {
+      path: '/network_tree', // the url
+      component: NetworkTree // view rendered
     },
     {
       path: '/welcome', // the url

@@ -12,6 +12,9 @@ import axios from 'axios';
 import ViewColumnsIcon from '@heroicons/react/24/outline/EyeIcon';
 import PlusCircleIcon from '@heroicons/react/24/outline/PlusCircleIcon';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+
+import TreeStucture from './../TreeStucture/Dex';
+
 const TopSideButtons = ({ removeFilter, applyFilter, applySearch }) => {
   const [filterParam, setFilterParam] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -104,6 +107,8 @@ function Transactions() {
       url: 'user/list'
     });
     let list = res.data;
+
+    console.log({ list });
     setUser(list);
   };
 
@@ -140,6 +145,7 @@ function Transactions() {
         }>
         {/* Team Member list in table format loaded constant */}
         <div className="overflow-x-auto w-full">
+          {/* <TreeStucture /> */}
           <table className="table w-full">
             <thead>
               <tr>
@@ -179,7 +185,7 @@ function Transactions() {
                     <td>{moment(l.date_sign).format('MMM D YYYY')}</td>
                     <td>
                       <div className="flex">
-                        <Link to={`/app/settings-profile/user?userId=${l.id}`}>
+                        <Link to={`/app/settings-profile/user?userId=${l.ID}`}>
                           <button className="btn btn-sm">
                             View
                             <ViewColumnsIcon className="h-4 w-4 text-blue-500" />

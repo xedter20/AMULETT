@@ -6,6 +6,9 @@ import config from './config.js';
 import userRoute from './routes/userRoute.js';
 import authRoute from './routes/auth.js';
 import bodyParser from 'body-parser';
+
+import profitIncrement from './helpers/profitIncrement.js';
+
 const app = express();
 
 // for parsing application/json
@@ -29,10 +32,10 @@ app.use(express.json());
 app.use('/api/user', userRoute);
 app.use('/api/auth', authRoute);
 
-// app.use('/', async (req, res, next) => {
-//   res.json('Hello from server');
-// });
+app.use('/', async (req, res, next) => {
+  res.json('Hello from server');
+});
 
-app.listen(config.port, () => {
+app.listen(config.port, async () => {
   console.log(`Server is live @ ${config.hostUrl}`);
 });

@@ -10,7 +10,7 @@ const { role } = checkAuth();
 
 let routes = [];
 
-if (role === 'admin') {
+if (role === 'ADMIN') {
   routes = [
     {
       path: '/app/dashboard',
@@ -21,6 +21,11 @@ if (role === 'admin') {
       path: '/app/users', // url
       icon: <UsersIcon className={iconClasses} />, // icon component
       name: 'Users' // name that appear in Sidebar
+    },
+    {
+      path: '/app/network_tree',
+      icon: <Squares2X2Icon className={iconClasses} />,
+      name: 'Network Tree'
     }
   ];
 } else {

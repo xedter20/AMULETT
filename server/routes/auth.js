@@ -15,29 +15,34 @@ import {
 } from 'firebase/firestore';
 
 import userModel from '../models/userModel.js';
+import {
+  findUserByIdQuery,
+  addUserQuery,
+  createRelationShipQuery,
+  getTreeStructureQuery,
+  getChildren,
+  findUserByEmailQuery,
+  findUserByUserNameQuery,
+  findUserQuery
+} from '../cypher/user.js';
+
+import config from '../config.js';
+const { cypherQuerySession } = config;
 
 const router = express.Router();
-
-const staticUsers = [
-  { email: 'dextermiranda441@gmail.com', password: 'Password1' },
-  { email: 'admin@gmail.com', password: 'Password1' }
-];
 
 router.post('/login', async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const userList = [];
 
   try {
-    const queryUsers = await getDocs(collection(db, 'users'));
-    queryUsers.forEach(doc => {
-      userList.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
+    let { records } = await cypherQuerySession.executeQuery(
+      findUserByEmailQuery(email)
+    );
 
-    const foundUser = userList.find(u => {
+    const user = records[0]._fields[0];
+
+    const foundUser = user.find(u => {
       return u.email === email && u.password === password;
     });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ColorKey } from '../../interfaces';
+import { ColorKey } from '../../interfaces.ts';
 import { colorsBgLight, colorsText } from './../colors';
 import Icon from '.';
 

@@ -5,7 +5,9 @@ import {
   createUser,
   getUser,
   isEmailExist,
-  isUserNameExist
+  isUserNameExist,
+  createUsersWithGraph,
+  getTreeStructure
 } from '../controllers/userController.js';
 
 const router = express.Router();
@@ -16,5 +18,9 @@ router.get('/:userId', getUser);
 
 router.post('/isEmailExist', isEmailExist);
 router.post('/isUserNameExist', isUserNameExist);
+
+router.post('/createUsersWithGraph', createUsersWithGraph);
+
+router.post('/getTreeStructure', getTreeStructure);
 
 export default router;
