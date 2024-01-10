@@ -6,8 +6,9 @@ import {
   getUser,
   isEmailExist,
   isUserNameExist,
-  createUsersWithGraph,
-  getTreeStructure
+  getTreeStructure,
+  createChildren,
+  getUserNodeWithChildren
 } from '../controllers/userController.js';
 
 const router = express.Router();
@@ -19,8 +20,8 @@ router.get('/:userId', getUser);
 router.post('/isEmailExist', isEmailExist);
 router.post('/isUserNameExist', isUserNameExist);
 
-router.post('/createUsersWithGraph', createUsersWithGraph);
-
 router.post('/getTreeStructure', getTreeStructure);
 
+router.post('/createChildren', createChildren);
+router.post('/getUserNodeWithChildren', getUserNodeWithChildren);
 export default router;

@@ -43,16 +43,19 @@ const MyTextInput = ({
         )}
         <div className="relative">
           <input
-            className={`${controlClassName} pl-10`}
+            className={`${controlClassName} ${icons ? 'pl-10' : ''}`}
             {...field}
             {...props}
           />
-          <Icon
-            path={icons}
-            w="w-10"
-            h={hasTextareaHeight ? 'h-full' : 'h-12'}
-            className="absolute top-0 left-0 z-10 pointer-events-none text-gray-500 dark:text-slate-400"
-          />
+
+          {icons && (
+            <Icon
+              path={icons}
+              w="w-10"
+              h={hasTextareaHeight ? 'h-full' : 'h-12'}
+              className="absolute top-0 left-0 z-10 pointer-events-none text-gray-500 dark:text-slate-400"
+            />
+          )}
         </div>
         {meta.touched && meta.error ? (
           <div className="text-xs text-left text-red-500 dark:text-red-400 mt-1">

@@ -26,23 +26,100 @@ import {
   findUserByUserNameQuery,
   findUserQuery
 } from '../cypher/user.js';
+import {
+  getAllParentNodes,
+  checkIfMatchExist,
+  addPairingNode,
+  getAllMatchPairById
+} from '../cypher/transaction.js';
+
 import config from '../config.js';
 import profitIncrement from '../helpers/profitIncrement.js';
 
 const { cypherQuerySession } = config;
 
-const prepareDataBeforeInsertion = ({
-  depthLevel,
-  sourceIndexPosition,
-  position
-}) => {
+const getAllPossibleMatch = ({ depthLevel }) => {
   const countTotalChildrenNodes = depthLevel => {
     return 1 * Math.pow(2, depthLevel);
   };
 
   let childTotal = countTotalChildrenNodes(depthLevel);
 
-  console.log({ depthLevel, sourceIndexPosition, position, childTotal });
+  let countLeft = 0;
+  let countRight = 0;
+  let childrenSize = childTotal; //EXPECTED CHILDREN IN THE DEPTH LEVEL let combinations = [];
+  let combinations = [];
+  let combinations_ = [];
+  let combinationsGeneral_ = [];
+  let generalCount = 1;
+
+  for (let index = 0; index < childrenSize; index++) {
+    let last = index + 1;
+    //Linear Prediction
+    if (last % 2 === 0) {
+      let leftAlias = `LVL_${depthLevel + 1}_INDEX_${index}`;
+      let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
+      combinations.push([leftAlias, rightAlias]);
+      // combinations.push(index + '=' + last);
+    }
+
+    if (depthLevel > 1) {
+      //Left Prediction
+      if (last % 2 === 1) {
+        if (countLeft % 2 === 0) {
+          let leftAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
+          let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last + 2}`;
+          // combinations_.push(last + '=' + (last + 2));
+          combinations_.push([leftAlias, rightAlias]);
+        }
+        countLeft++;
+      }
+
+      //Right Prediction
+      if (last % 2 === 0) {
+        if (countLeft % 2 === 1) {
+          let leftAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
+          let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last + 2}`;
+          // combinations_.push(last + '=' + (last + 2));
+          combinations_.push([leftAlias, rightAlias]);
+        }
+
+        countRight++;
+      }
+    }
+    //Parent Prediction
+    if (index < childrenSize / 2) {
+      let leftAlias = `LVL_${depthLevel + 1}_INDEX_${generalCount}`;
+      let rightAlias = `LVL_${depthLevel + 1}_INDEX_${
+        childrenSize - childrenSize / 2 + generalCount
+      }`;
+
+      combinationsGeneral_.push([leftAlias, rightAlias]);
+
+      // combinationsGeneral_.push(
+      //   generalCount + '=' + (childrenSize - childrenSize / 2 + generalCount)
+      // );
+      generalCount++;
+    }
+  }
+
+  // console.log('Combinations in Linear : ', combinations);
+  // console.log('Combinations in Left and Right: ', combinations_);
+
+  let allCombinations = [...combinations, ...combinations_];
+  if (childrenSize / 2 > 2) {
+    allCombinations = [...allCombinations, ...combinationsGeneral_];
+    // console.log('Combinations in Parent', combinationsGeneral_);
+  }
+
+  return allCombinations;
+};
+
+const prepareDataBeforeInsertion = ({
+  depthLevel,
+  sourceIndexPosition,
+  position
+}) => {
   const createAlias = () => {
     let nextPositionIndex;
     let nextAlias = `LVL_${depthLevel + 1}`;
@@ -64,76 +141,6 @@ const prepareDataBeforeInsertion = ({
     };
   };
 
-  const getAllPossibleMatch = ({ depthLevel }) => {
-    let countLeft = 0;
-    let countRight = 0;
-    let childrenSize = childTotal; //EXPECTED CHILDREN IN THE DEPTH LEVEL let combinations = [];
-    let combinations = [];
-    let combinations_ = [];
-    let combinationsGeneral_ = [];
-    let generalCount = 1;
-
-    for (let index = 0; index < childrenSize; index++) {
-      let last = index + 1;
-      //Linear Prediction
-      if (last % 2 === 0) {
-        let leftAlias = `LVL_${depthLevel + 1}_INDEX_${index}`;
-        let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
-        combinations.push([leftAlias, rightAlias]);
-        // combinations.push(index + '=' + last);
-      }
-
-      if (depthLevel > 1) {
-        //Left Prediction
-        if (last % 2 === 1) {
-          if (countLeft % 2 === 0) {
-            let leftAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
-            let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last + 2}`;
-            // combinations_.push(last + '=' + (last + 2));
-            combinations_.push([leftAlias, rightAlias]);
-          }
-          countLeft++;
-        }
-
-        //Right Prediction
-        if (last % 2 === 0) {
-          if (countLeft % 2 === 1) {
-            let leftAlias = `LVL_${depthLevel + 1}_INDEX_${last}`;
-            let rightAlias = `LVL_${depthLevel + 1}_INDEX_${last + 2}`;
-            // combinations_.push(last + '=' + (last + 2));
-            combinations_.push([leftAlias, rightAlias]);
-          }
-
-          countRight++;
-        }
-      }
-      //Parent Prediction
-      if (index < childrenSize / 2) {
-        let leftAlias = `LVL_${depthLevel + 1}_INDEX_${generalCount}`;
-        let rightAlias = `LVL_${depthLevel + 1}_INDEX_${
-          childrenSize - childrenSize / 2 + generalCount
-        }`;
-
-        combinationsGeneral_.push([leftAlias, rightAlias]);
-
-        // combinationsGeneral_.push(
-        //   generalCount + '=' + (childrenSize - childrenSize / 2 + generalCount)
-        // );
-        generalCount++;
-      }
-    }
-
-    // console.log('Combinations in Linear : ', combinations);
-    // console.log('Combinations in Left and Right: ', combinations_);
-
-    let allCombinations = [...combinations, ...combinations_];
-    if (childrenSize / 2 > 2) {
-      allCombinations = [...allCombinations, ...combinationsGeneral_];
-      // console.log('Combinations in Parent', combinationsGeneral_);
-    }
-
-    return allCombinations;
-  };
   // return createAlias({
   //   depthLevel: 1,
   //   sourceIndexPosition: 1,
@@ -152,7 +159,7 @@ export const createUser = async (req, res, next) => {
   try {
     const data = req.body;
 
-    const { firstName, lastName, email } = data;
+    const { firstName, lastName, email, position, parentNodeID } = data;
 
     let formData = {
       ...data,
@@ -161,15 +168,14 @@ export const createUser = async (req, res, next) => {
       date_created: Date.now()
     };
 
-    let position = 'RIGHT'; // // to get in UI
-    let parentNodeID = '58a3a510-4905-4717-8ebe-6406e876a57e'; // to get in UI
-
     let { records } = await cypherQuerySession.executeQuery(
       findUserByIdQuery(parentNodeID)
     );
     const [user] = records[0]._fields[0];
     let depthLevel = user?.DEPTH_LEVEL.low || 1;
     let sourceIndexPosition = user?.INDEX_PLACEMENT.low || 1;
+
+    let nodeLogicProps = {};
 
     if (email === 'dextermiranda441@gmail.com') {
       formData = {
@@ -181,7 +187,7 @@ export const createUser = async (req, res, next) => {
         DEPTH_LEVEL: 1
       };
     } else {
-      let nodeLogicProps = prepareDataBeforeInsertion({
+      nodeLogicProps = prepareDataBeforeInsertion({
         depthLevel: depthLevel,
         sourceIndexPosition: sourceIndexPosition,
         position: position
@@ -192,9 +198,12 @@ export const createUser = async (req, res, next) => {
         isRootNode: false,
         DEPTH_LEVEL: depthLevel + 1,
         ID_ALIAS: nodeLogicProps.newlyAddedUserAlias.nextAlias,
-        INDEX_PLACEMENT: nodeLogicProps.newlyAddedUserAlias.nextPositionIndex
+        INDEX_PLACEMENT: nodeLogicProps.newlyAddedUserAlias.nextPositionIndex,
+        parentID: parentNodeID || ''
       };
     }
+
+    let { allPossibleCombination } = nodeLogicProps;
 
     let createdUser = await cypherQuerySession.executeQuery(
       addUserQuery({
@@ -202,14 +211,16 @@ export const createUser = async (req, res, next) => {
       })
     );
 
-    const result = createdUser.records[0]._fields[0];
+    if (position && parentNodeID) {
+      const result = createdUser.records[0]._fields[0];
 
-    await cypherQuerySession.executeQuery(
-      createRelationShipQuery({
-        parentId: parentNodeID,
-        ID: result.ID
-      })
-    );
+      await cypherQuerySession.executeQuery(
+        createRelationShipQuery({
+          parentId: parentNodeID,
+          ID: result.ID
+        })
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -292,153 +303,282 @@ export const isUserNameExist = async (req, res, next) => {
   }
 };
 
-// create user graph with parent and child relationship
-export const createUsersWithGraph = async (req, res, next) => {
+const recursiveUpdateAttributes = async (node, allPairingsFromDb) => {
+  // If the node is empty, just return it as is.
+  if (!node) {
+    return node;
+  }
+
+  let children;
+  children = await Promise.all(
+    (node.has_invite || []).map(async childNode => {
+      let childNodeProps = await recursiveUpdateAttributes(
+        childNode,
+        allPairingsFromDb
+      );
+
+      return {
+        ...childNodeProps,
+
+        _id: node._id.low,
+        has_invite: [],
+        'has_invite.date_created': '',
+        matchingPairs: allPairingsFromDb.filter(
+          u => u.source_user_id === childNode.ID
+        )
+      };
+    })
+  );
+
+  return {
+    INDEX_PLACEMENT: node.INDEX_PLACEMENT.low,
+    name: node.name,
+
+    _id: node._id.low,
+    attributes: {
+      ...node,
+      INDEX_PLACEMENT: node.INDEX_PLACEMENT.low,
+      _id: node._id.low,
+      has_invite: [],
+      'has_invite.date_created': ''
+    },
+    children: children.sort((a, b) => {
+      let left = a.attributes?.INDEX_PLACEMENT;
+      let right = b.attributes?.INDEX_PLACEMENT;
+
+      console.log(left);
+
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
+      return 0;
+    }),
+    has_invite: [],
+    matchingPairs: allPairingsFromDb.filter(u => u.source_user_id === node.ID)
+  };
+};
+export const getTreeStructure = async (req, res, next) => {
   try {
-    let ID = uuidv4();
-    // const rootUser = [
-    //   {
-    //     parentID: '',
-    //     ID: ID,
-    //     firstName: 'Dexter',
-    //     lastName: 'Miranda',
-    //     name: 'Dexter Miranda',
-    //     rootID: '',
-    //     depthLevel: 1,
-    //     remarks: '',
-    //     mainBranch: '',
-    //     rowIndex: 0
-    //   }
-    // ];
+    // check if root has > 1 child
 
-    const root = {
-      parentID: '',
-      ID: 1,
-      firstName: 'Dexter',
-      lastName: 'Miranda',
-      name: 'Dexter Miranda',
-      rootID: '',
-      depthLevel: 1,
-      remarks: '',
-      mainBranch: '',
-      rowIndex: 0
-    };
-
-    const child1 = {
-      parentID: '1',
-      ID: 2,
-      firstName: 'Jasmien',
-      lastName: 'Miranda',
-      name: 'Jasmien Miranda',
-      rootID: '1',
-      depthLevel: 2,
-      remarks: '',
-      mainBranch: 'LEFT',
-      rowIndex: 0
-    };
-
-    const child2 = {
-      parentID: '1',
-      ID: 3,
-      firstName: 'Bryan',
-      lastName: 'Miranda',
-      name: 'Bryan Miranda',
-      rootID: '1',
-      depthLevel: 2,
-      remarks: '',
-      mainBranch: 'RIGHT',
-      rowIndex: 0
-    };
-
-    const child3 = {
-      parentID: '2',
-      ID: 4,
-      firstName: 'Daniel',
-      lastName: 'Miranda',
-      name: 'Daniel Miranda',
-      rootID: '1',
-      depthLevel: 3,
-      remarks: '',
-      mainBranch: 'LEFT',
-      rowIndex: 0
-    };
-
-    const user = [child3];
-
-    await Promise.all(
-      user.map(async user => {
-        await cypherQuerySession.executeQuery(addUserQuery(user));
+    const childUserInfo = await cypherQuerySession.executeQuery(
+      getChildren({
+        isSourceRootNode: true
       })
     );
 
-    await Promise.all(
-      user.map(async user => {
-        console.log({ user });
-        if (user.parentID) {
-          await cypherQuerySession.executeQuery(
-            createRelationShipQuery({
-              parentId: user.parentID,
-              ID: user.ID
-            })
-          );
-        }
+    let [childUser] = childUserInfo.records[0]._fields[0];
+
+    const data = await cypherQuerySession.executeQuery(
+      getTreeStructureQuery({
+        userId: 1,
+        withOptional: !childUser
       })
     );
+    let result = data.records[0]._fields;
 
-    await Promise.all(
-      user.map(async user => {
-        if (user.parentID) {
-          const { records } = await cypherQuerySession.executeQuery(
-            getChildren({
-              ID: user.parentID
-            })
-          );
-
-          const childrenCount = records[0]._fields[0];
-
-          console.log({ childrenCount });
-
-          if (childrenCount.length > 1 || childrenCount.length === 2) {
-            console.log('add 1k');
-          } else {
-            console.log('not add 1k');
-          }
-        }
-      })
+    let getAllMatchPairByIdQuery = await cypherQuerySession.executeQuery(
+      getAllMatchPairById({ ID: false })
     );
 
-    res.json({ success: true });
+    let matchingPairs = getAllMatchPairByIdQuery.records[0]._fields[0];
 
-    // await cypherQuerySession
-    //   .run(addUserQuery(user[0]))
-    //   .then(({ records }) => {
-    //     console.log({ records });
-    //     let list = [];
-    //     records.forEach(record => {
-    //       list = record._fields[0];
-    //     });
+    console.log(matchingPairs);
 
-    //     res.json({ data: list });
-    //   })
-    //   .catch(error => {
-    //     console.log(error);
-    //   });
-    // // .then(() => cypherQuerySession.close());
+    let tree = await recursiveUpdateAttributes(result[0], matchingPairs);
+
+    res.json({ success: true, data: tree });
   } catch (error) {
     res.status(400).send(error.message);
   }
 };
 
-export const getTreeStructure = async (req, res, next) => {
+export const createChildren = async (req, res, next) => {
   try {
-    const data = await cypherQuerySession.executeQuery(
-      getTreeStructureQuery({
-        userId: 1
+    const data = req.body;
+
+    const { firstName, lastName, email, position, parentNodeID, targetUserID } =
+      data;
+
+    let { records } = await cypherQuerySession.executeQuery(
+      findUserByIdQuery(parentNodeID)
+    );
+    const [user] = records[0]._fields[0];
+    let depthLevel = user?.DEPTH_LEVEL.low || 1;
+    let sourceIndexPosition = user?.INDEX_PLACEMENT.low || 1;
+
+    let nodeLogicProps = prepareDataBeforeInsertion({
+      depthLevel: depthLevel,
+      sourceIndexPosition: sourceIndexPosition,
+      position: position
+    });
+
+    let childUserInfo = await cypherQuerySession.executeQuery(
+      findUserByIdQuery(targetUserID)
+    );
+
+    let [childUser] = childUserInfo.records[0]._fields[0];
+
+    let formData = {
+      email: childUser.email,
+      isRootNode: false,
+      DEPTH_LEVEL: depthLevel + 1,
+      ID_ALIAS: nodeLogicProps.newlyAddedUserAlias.nextAlias,
+      INDEX_PLACEMENT: nodeLogicProps.newlyAddedUserAlias.nextPositionIndex,
+      parentID: parentNodeID || ''
+    };
+
+    let createdUser = await cypherQuerySession.executeQuery(
+      addUserQuery({
+        ...formData
       })
     );
-    let result = data.records[0]._fields;
 
-    res.json({ success: true, data: result });
+    if (position && parentNodeID && targetUserID) {
+      const result = createdUser.records[0]._fields[0];
+
+      await cypherQuerySession.executeQuery(
+        createRelationShipQuery({
+          parentId: parentNodeID,
+          ID: result.ID
+        })
+      );
+
+      const checkParentNodeIfPairExistQuery =
+        await cypherQuerySession.executeQuery(
+          getAllParentNodes({ ID: result.ID })
+        );
+
+      const [child, parents] =
+        checkParentNodeIfPairExistQuery.records[0]._fields;
+
+      // map all parents
+
+      let allPossibleCombination = getAllPossibleMatch({
+        depthLevel
+      });
+
+      let resultPairs = await Promise.all(
+        parents.map(async ({ ID, DEPTH_LEVEL }) => {
+          // check if theres match
+
+          console.log({
+            ID,
+            allPossibleCombination
+          });
+
+          const pairing = await Promise.all(
+            allPossibleCombination.map(async aliasSet => {
+              const checkIfMatchExistQuery =
+                await cypherQuerySession.executeQuery(
+                  checkIfMatchExist({ ID, aliasSet })
+                );
+
+              let [{ low }] = checkIfMatchExistQuery.records[0]._fields;
+
+              let pairMatched = low === 2;
+
+              return {
+                parentDepthLevel: DEPTH_LEVEL.low,
+                currentDepthLevel: depthLevel,
+                parentId: ID,
+                aliasSet: aliasSet,
+                pairMatched: pairMatched
+              };
+            })
+          );
+
+          let result = await Promise.all(
+            pairing
+              .filter(({ pairMatched }) => !!pairMatched)
+              .map(async pairing => {
+                return pairing;
+              })
+          );
+
+          return {
+            ID,
+            DEPTH_LEVEL: DEPTH_LEVEL.low,
+            result
+          };
+        })
+      );
+
+      console.log({ resultPairs });
+
+      let [chooseNearestParentThatHaveMatch] = resultPairs
+        .filter(({ result }) => {
+          return result && result.length > 0;
+        })
+        .sort(function (a, b) {
+          let left = a.DEPTH_LEVEL;
+          let right = b.DEPTH_LEVEL;
+
+          if (left < right) {
+            return 1;
+          }
+          if (left > right) {
+            return -1;
+          }
+          return 0;
+        });
+
+      console.log({ chooseNearestParentThatHaveMatch });
+      await Promise.all(
+        chooseNearestParentThatHaveMatch.result.map(async pairing => {
+          console.log({ ID: uuidv4(), ...pairing });
+          await cypherQuerySession.executeQuery(
+            addPairingNode({ ID: uuidv4(), ...pairing })
+          );
+        })
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'created_successfully'
+    });
+    return true;
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
+export const getUserNodeWithChildren = async (req, res, next) => {
+  try {
+    const ID = req.body.ID;
+
+    const childUserInfo = await cypherQuerySession.executeQuery(
+      getChildren({
+        ID: ID
+      })
+    );
+    let childUsers = childUserInfo.records[0]._fields;
+
+    let availablePosition = [
+      { value: 'LEFT', label: 'Left' },
+      { value: 'RIGHT', label: 'Right' }
+    ];
+
+    if (childUsers[0].length > 0) {
+      let maxIndex = childUsers[0]
+        .map(({ INDEX_PLACEMENT }) => {
+          return INDEX_PLACEMENT?.low || 1;
+        })
+        .sort(function (a, b) {
+          return a + b;
+        });
+
+      if (maxIndex[0] % 2 === 0) {
+        availablePosition = [{ value: 'LEFT', label: 'Left' }];
+      } else {
+        availablePosition = [{ value: 'RIGHT', label: 'Right' }];
+      }
+    }
+    res.json({ success: true, data: availablePosition });
   } catch (error) {
     res.status(400).send(error.message);
   }

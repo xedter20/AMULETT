@@ -35,8 +35,6 @@ export const createRelationShipQuery = ({ parentId, ID }) => {
 
   `;
 
-  console.log(queryText);
-
   return queryText;
 };
 
@@ -83,32 +81,42 @@ export const findUserByUserNameQuery = userName => {
   return queryText;
 };
 
-export const getTreeStructureQuery = ({ userId }) => {
+export const getTreeStructureQuery = ({ userId, withOptional }) => {
   const queryText = `
 
 
-    MATCH path = ( p:User { isRootNode:true })-[:has_invite*]->(User) 
+    MATCH path =  ( p:User { isRootNode:true })
+
+    ${
+      withOptional
+        ? ' OPTIONAL MATCH(p) -[:has_invite*]->(User) '
+        : '-[:has_invite*]->(User)'
+    }
+   
     WITH collect(path) AS paths
     CALL apoc.convert.toTree(paths, true , {
-      nodes: {User: ['firstName', 'lastName', 'ID','email']}
+      nodes: {User: ['name','firstName', 'lastName', 'ID','email' ,'INDEX_PLACEMENT']}
     })
     YIELD value
     RETURN value;
+    
     
   `;
 
   return queryText;
 };
 
-export const getChildren = ({ ID }) => {
+export const getChildren = ({ ID, isSourceRootNode }) => {
   const queryText = `
 
-     MATCH (parent:User { ID:  ${ID} }) 
+     MATCH (parent:User { 
+      
+      ${isSourceRootNode ? 'isRootNode : true ' : `ID:'${ID}'`} 
+    
+    
+    }) 
      MATCH(parent)-[e:has_invite]->(child) 
-
-     RETURN COLLECT(properties(child)) as children
-
-
+     RETURN  COLLECT(properties(child)) as children
 
     
   `;
