@@ -30,7 +30,8 @@ import {
   getAllParentNodes,
   checkIfMatchExist,
   addPairingNode,
-  getAllMatchPairById
+  getAllMatchPairById,
+  checkIfPairExist
 } from '../cypher/transaction.js';
 
 import config from '../config.js';
@@ -346,8 +347,6 @@ const recursiveUpdateAttributes = async (node, allPairingsFromDb) => {
       let left = a.attributes?.INDEX_PLACEMENT;
       let right = b.attributes?.INDEX_PLACEMENT;
 
-      console.log(left);
-
       if (left < right) {
         return -1;
       }
@@ -385,8 +384,6 @@ export const getTreeStructure = async (req, res, next) => {
     );
 
     let matchingPairs = getAllMatchPairByIdQuery.records[0]._fields[0];
-
-    console.log(matchingPairs);
 
     let tree = await recursiveUpdateAttributes(result[0], matchingPairs);
 
@@ -465,11 +462,6 @@ export const createChildren = async (req, res, next) => {
         parents.map(async ({ ID, DEPTH_LEVEL }) => {
           // check if theres match
 
-          console.log({
-            ID,
-            allPossibleCombination
-          });
-
           const pairing = await Promise.all(
             allPossibleCombination.map(async aliasSet => {
               const checkIfMatchExistQuery =
@@ -507,9 +499,7 @@ export const createChildren = async (req, res, next) => {
         })
       );
 
-      console.log({ resultPairs });
-
-      let [chooseNearestParentThatHaveMatch] = resultPairs
+      let allParentPairings = resultPairs
         .filter(({ result }) => {
           return result && result.length > 0;
         })
@@ -526,12 +516,48 @@ export const createChildren = async (req, res, next) => {
           return 0;
         });
 
-      console.log({ chooseNearestParentThatHaveMatch });
+      // let [chooseNearestParentThatHaveMatch] = allParentPairings;
+      let consumedAlias = [];
+
+      const allParentPairingsSimplified = await allParentPairings
+        .filter(({ ID }) => ID)
+        .reduce(async (acc, current) => {
+          const updated = await Promise.all(
+            current.result.map(async pairing => {
+              let currentAlias = pairing.aliasSet.join('=');
+
+              // check if already exist in DB
+              let isAliasExistOnDbQuery = await cypherQuerySession.executeQuery(
+                checkIfPairExist({
+                  name: currentAlias
+                })
+              );
+              let [{ low }] = isAliasExistOnDbQuery.records[0]._fields;
+
+              let isAliasExistOnDb = low > 0;
+
+              if (consumedAlias.includes(currentAlias) || isAliasExistOnDb) {
+                return false;
+              } else {
+                consumedAlias.push(pairing.aliasSet.join('='));
+                return pairing;
+              }
+            })
+          );
+
+          current.result = updated.filter(u => u);
+
+          return [...(await acc), current];
+        }, []);
+
       await Promise.all(
-        chooseNearestParentThatHaveMatch.result.map(async pairing => {
-          console.log({ ID: uuidv4(), ...pairing });
-          await cypherQuerySession.executeQuery(
-            addPairingNode({ ID: uuidv4(), ...pairing })
+        allParentPairingsSimplified.map(async (parent, index) => {
+          await Promise.all(
+            parent.result.map(async pairing => {
+              await cypherQuerySession.executeQuery(
+                addPairingNode({ ID: uuidv4(), ...pairing })
+              );
+            })
           );
         })
       );

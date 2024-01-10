@@ -29,6 +29,21 @@ export const checkIfMatchExist = ({ ID, aliasSet }) => {
   return queryText;
 };
 
+export const checkIfPairExist = ({ ID, name }) => {
+  const queryText = `
+
+    MATCH(pairing:Pairing ) 
+
+    where pairing.name = '${name}'
+
+
+    RETURN count(pairing) as children_count
+
+  `;
+
+  return queryText;
+};
+
 export const addPairingNode = params => {
   let {
     ID,

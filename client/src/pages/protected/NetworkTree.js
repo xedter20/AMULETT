@@ -22,11 +22,18 @@ const renderNodeWithCustomEvents = ({
   let matchCount = nodeDatum.matchingPairs.filter(({ status }) => {
     return status === 'PENDING';
   }).length;
+  const nodeSize = { x: '25%', y: '50%' };
+  const foreignObjectProps = {
+    width: nodeSize.x,
+    height: nodeSize.y,
+    x: -70,
+    y: 40
+  };
   return (
     <g>
       <circle
-        stroke="#0284c7"
-        fill="#7dd3fc"
+        stroke="#a21caf"
+        fill="#f0abfc"
         r="35"
         onClick={async () => {
           handleNodeClick(nodeDatum);
@@ -46,8 +53,9 @@ const renderNodeWithCustomEvents = ({
         }}
       />
       <text
-        fill="black"
-        strokeWidth="1"
+        fill="#a21caf"
+        fontWeight="bold"
+        strokeWidth="0"
         x="-3"
         y="5"
         onClick={toggleNode}
@@ -56,16 +64,33 @@ const renderNodeWithCustomEvents = ({
         {nodeDatum.INDEX_PLACEMENT}
       </text>
 
-      <text
-        fill="black"
-        strokeWidth="1"
-        x="-40"
-        y="60"
-        onClick={toggleNode}
-        fontSize="9"
-        fontWeightt="3">
-        {nodeDatum.name} {matchCount ? ` - Match Count: ${matchCount}` : ''}
-      </text>
+      <foreignObject {...foreignObjectProps}>
+        <div className="alert alert shadow-lg bg-white">
+          <h6 className="text-xs font-normal text-gray-800 text-center h6">
+            {nodeDatum.name}
+          </h6>
+          {/* <hr /> */}
+
+          <h6 className="text-xs font-bold text-gray-800 text-center h6">
+            Total Match: {matchCount}
+          </h6>
+        </div>
+        {/* <div style={{ border: '1px solid black', backgroundColor: '#dedede' }}>
+          <h3 style={{ textAlign: 'center' }}>{nodeDatum.name}</h3>
+        </div> */}
+        {/* <text
+          fill="#1e293b"
+          fontWeight="normal"
+          strokeWidth="0"
+          x="-40"
+          y="60"
+          onClick={toggleNode}
+          fontSize="10"
+          fontWeightt="2">
+          {nodeDatum.name} {matchCount ? ` - Match Count: ${matchCount}` : ''}
+        </text> */}
+      </foreignObject>
+
       {/* {nodeDatum.attributes?.email && (
       <text fill="black" x="20" dy="20" strokeWidth="1">
         Department: {nodeDatum.attributes?.email}
@@ -220,8 +245,13 @@ function InternalPage() {
                 leafNodeClassName="node__leaf"
                 data={treeStucture}
                 orientation="vertical"
+                pathFunc="step"
                 translate={treeTranslate}
                 collapsible={false}
+                separation={{
+                  siblings: 2,
+                  nonSiblings: 2
+                }}
                 renderCustomNodeElement={rd3tProps =>
                   renderNodeWithCustomEvents({
                     ...rd3tProps,
@@ -230,8 +260,6 @@ function InternalPage() {
                     setAvailablePosition
                   })
                 }
-
-                // pathFunc="step"
               />
             )}
             <dialog id="createChildModal" className="modal">
