@@ -22,10 +22,10 @@ const DocFeatures = lazy(() => import('../pages/DocFeatures'));
 const DocComponents = lazy(() => import('../pages/DocComponents'));
 const AddMember = lazy(() => import('../pages/protected/Leads'));
 
-const { role } = checkAuth();
+const token = checkAuth();
 
 let routes = [];
-if (role === 'ADMIN') {
+if (token) {
   routes = [
     {
       path: '/dashboard', // the url

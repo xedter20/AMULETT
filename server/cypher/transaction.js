@@ -77,20 +77,20 @@ export const addPairingNode = params => {
     date_updated: Date.now()
   };
   const queryText = `
-     MATCH (u:User {
-      ID: '${parentId}'
-     })
+ 
      MERGE (pairing:Pairing {
-    
-       name: '${newData.name}'
+       name: '${newData.name}',
+       source_user_id: '${parentId}'
       })
       
      ON CREATE 
      SET pairing += ${util.inspect(newData)}
      ON MATCH SET 
      pairing += ${util.inspect(updateData)}
-
-
+    with pairing
+     MATCH (u:User {
+      ID: '${parentId}'
+     })
      MERGE(u)-[e:has_pair_match]->(pairing) 
      RETURN  *
 

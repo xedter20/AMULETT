@@ -77,7 +77,6 @@ export const findUserByUserNameQuery = userName => {
   }) RETURN COLLECT(properties(n)) as data
   `;
 
-  console.log(queryText);
   return queryText;
 };
 
@@ -85,7 +84,13 @@ export const getTreeStructureQuery = ({ userId, withOptional }) => {
   const queryText = `
 
 
-    MATCH path =  ( p:User { isRootNode:true })
+  ${
+    userId
+      ? `MATCH path =  ( p:User { ID:'${userId}' })`
+      : `MATCH path =  ( p:User { isRootNode:true })`
+  }
+
+ 
 
     ${
       withOptional

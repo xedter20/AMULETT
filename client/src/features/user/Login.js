@@ -60,9 +60,7 @@ function Login() {
         let { token } = res.data;
         let { role, id, email } = res.data.data;
 
-        // console.log({ role, id, email });
-
-        localStorage.setItem('token', JSON.stringify({ role, id, email }));
+        localStorage.setItem('token', token);
 
         window.location.href = '/app/dashboard';
       } catch (error) {

@@ -6,11 +6,11 @@ import UsersIcon from '@heroicons/react/24/outline/UsersIcon';
 const iconClasses = `h-6 w-6`;
 const submenuIconClasses = `h-5 w-5`;
 
-const { role } = checkAuth();
+const token = checkAuth();
 
 let routes = [];
 
-if (role === 'ADMIN') {
+if (token) {
   routes = [
     {
       path: '/app/dashboard',

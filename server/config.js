@@ -25,7 +25,8 @@ const {
   PROJECT_ID,
   STORAGE_BUCKET,
   MESSAGING_SENDER_ID,
-  APP_ID
+  APP_ID,
+  JWT_TOKEN_SECRET
 } = process.env;
 
 assert(PORT, 'Port is required');
@@ -44,5 +45,6 @@ export default {
     appId: '1:454615667579:web:e265ff3388db8e9e9823de',
     measurementId: 'G-62HCJN3SH9'
   },
-  cypherQuerySession
+  cypherQuerySession,
+  JWT_TOKEN_SECRET
 };

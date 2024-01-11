@@ -1,20 +1,5 @@
 import express from 'express';
 
-import { getAllUsers, createUser } from '../controllers/userController.js';
-import firebase from '../firebase.js';
-const db = getFirestore(firebase);
-import {
-  getFirestore,
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc
-} from 'firebase/firestore';
-
-import userModel from '../models/userModel.js';
 import {
   findUserByIdQuery,
   addUserQuery,
@@ -27,6 +12,9 @@ import {
 } from '../cypher/user.js';
 
 import config from '../config.js';
+
+import { generateAccessToken } from '../helpers/generateAccessToken.js';
+
 const { cypherQuerySession } = config;
 
 const router = express.Router();
@@ -47,9 +35,13 @@ router.post('/login', async (req, res, next) => {
     });
 
     if (foundUser) {
+      let { email, ID, role } = foundUser;
+
+      let token = await generateAccessToken({ email, ID, role });
+
       res.json({
         success: true,
-        token: 'token_should_be_initialize_here',
+        token: token,
         data: {
           role: foundUser.role,
           id: foundUser.id,
@@ -63,6 +55,7 @@ router.post('/login', async (req, res, next) => {
       });
     }
   } catch (error) {
+    console.log(error);
     return res.status(500).send('Something went wrong');
   }
 });

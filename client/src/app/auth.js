@@ -3,14 +3,7 @@ import axios from 'axios';
 const checkAuth = () => {
   /*  Getting token value stored in localstorage, if token is not present we will open login page 
     for all internal dashboard routes  */
-  const TOKEN = JSON.parse(
-    localStorage.getItem('token') ||
-      JSON.stringify({
-        role: '',
-        email: '',
-        id: ''
-      })
-  );
+  const TOKEN = localStorage.getItem('token');
   const PUBLIC_ROUTES = [
     'login',
     'forgot-password',

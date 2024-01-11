@@ -35,7 +35,6 @@ import {
 } from '../cypher/transaction.js';
 
 import config from '../config.js';
-import profitIncrement from '../helpers/profitIncrement.js';
 
 const { cypherQuerySession } = config;
 
@@ -362,6 +361,7 @@ const recursiveUpdateAttributes = async (node, allPairingsFromDb) => {
 export const getTreeStructure = async (req, res, next) => {
   try {
     // check if root has > 1 child
+    let loggedInUser = req.user;
 
     const childUserInfo = await cypherQuerySession.executeQuery(
       getChildren({
@@ -373,7 +373,7 @@ export const getTreeStructure = async (req, res, next) => {
 
     const data = await cypherQuerySession.executeQuery(
       getTreeStructureQuery({
-        userId: 1,
+        userId: loggedInUser.ID,
         withOptional: !childUser
       })
     );
@@ -437,12 +437,12 @@ export const createChildren = async (req, res, next) => {
     if (position && parentNodeID && targetUserID) {
       const result = createdUser.records[0]._fields[0];
 
-      await cypherQuerySession.executeQuery(
-        createRelationShipQuery({
-          parentId: parentNodeID,
-          ID: result.ID
-        })
-      );
+      // await cypherQuerySession.executeQuery(
+      //   createRelationShipQuery({
+      //     parentId: parentNodeID,
+      //     ID: result.ID
+      //   })
+      // );
 
       const checkParentNodeIfPairExistQuery =
         await cypherQuerySession.executeQuery(
@@ -457,6 +457,19 @@ export const createChildren = async (req, res, next) => {
       let allPossibleCombination = getAllPossibleMatch({
         depthLevel
       });
+
+      console.log(result.ID_ALIAS);
+      allPossibleCombination = allPossibleCombination
+        .map(current => {
+          const exists = current.includes(result.ID_ALIAS);
+
+          if (exists && exists) {
+            return current;
+          } else {
+            return false;
+          }
+        })
+        .filter(u => u);
 
       let resultPairs = await Promise.all(
         parents.map(async ({ ID, DEPTH_LEVEL }) => {
@@ -519,46 +532,49 @@ export const createChildren = async (req, res, next) => {
       // let [chooseNearestParentThatHaveMatch] = allParentPairings;
       let consumedAlias = [];
 
-      const allParentPairingsSimplified = await allParentPairings
+      const allParentPairingsSimplified = allParentPairings
         .filter(({ ID }) => ID)
-        .reduce(async (acc, current) => {
-          const updated = await Promise.all(
-            current.result.map(async pairing => {
-              let currentAlias = pairing.aliasSet.join('=');
+        .reduce((acc, current) => {
+          const updated = current.result.map(pairing => {
+            let currentAlias = pairing.aliasSet.join('=');
 
-              // check if already exist in DB
-              let isAliasExistOnDbQuery = await cypherQuerySession.executeQuery(
-                checkIfPairExist({
-                  name: currentAlias
-                })
-              );
-              let [{ low }] = isAliasExistOnDbQuery.records[0]._fields;
-
-              let isAliasExistOnDb = low > 0;
-
-              if (consumedAlias.includes(currentAlias) || isAliasExistOnDb) {
-                return false;
-              } else {
-                consumedAlias.push(pairing.aliasSet.join('='));
-                return pairing;
-              }
-            })
-          );
+            if (consumedAlias.includes(currentAlias)) {
+              return false;
+            } else {
+              consumedAlias.push(pairing.aliasSet.join('='));
+              return pairing;
+            }
+          });
 
           current.result = updated.filter(u => u);
 
-          return [...(await acc), current];
+          return [...acc, current];
         }, []);
 
       await Promise.all(
-        allParentPairingsSimplified.map(async (parent, index) => {
-          await Promise.all(
-            parent.result.map(async pairing => {
+        allParentPairingsSimplified.map((parent, index) => {
+          parent.result.map(async pairing => {
+            let currentAlias = pairing.aliasSet.join('=');
+
+            let isAliasExistOnDbQuery = await cypherQuerySession.executeQuery(
+              checkIfPairExist({
+                name: currentAlias
+              })
+            );
+            let [{ low }] = isAliasExistOnDbQuery.records[0]._fields;
+            let isAliasExistOnDb = low > 0;
+            console.log({ ID: parent.ID, isAliasExistOnDb });
+
+            if (!isAliasExistOnDb) {
               await cypherQuerySession.executeQuery(
-                addPairingNode({ ID: uuidv4(), ...pairing })
+                addPairingNode({
+                  ID: uuidv4(),
+                  parentId: parent.ID,
+                  ...pairing
+                })
               );
-            })
-          );
+            }
+          });
         })
       );
     }
