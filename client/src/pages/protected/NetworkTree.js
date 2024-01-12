@@ -11,6 +11,8 @@ import Dropdown from '../../components/Input/Dropdown';
 import CheckCircleIcon from '@heroicons/react/24/outline/CheckCircleIcon';
 
 import './customTree.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const renderNodeWithCustomEvents = ({
   nodeDatum,
@@ -41,15 +43,17 @@ const renderNodeWithCustomEvents = ({
           setFieldValue('parentNodeEmail', nodeDatum.attributes.email);
           setFieldValue('parentNodeID', nodeDatum.attributes.ID);
 
-          let res = await axios({
-            method: 'POST',
-            url: 'user/getUserNodeWithChildren',
-            data: {
-              ID: nodeDatum.attributes.ID
-            }
-          });
+          if (nodeDatum.matchingPairs < 2) {
+            let res = await axios({
+              method: 'POST',
+              url: 'user/getUserNodeWithChildren',
+              data: {
+                ID: nodeDatum.attributes.ID
+              }
+            });
 
-          setAvailablePosition(res.data.data);
+            setAvailablePosition(res.data.data);
+          }
         }}
       />
       <text
@@ -169,6 +173,7 @@ function InternalPage() {
 
   const handleNodeClick = nodeDatum => {
     if (nodeDatum.children.length === 2) {
+      console.log(nodeDatum.matchingPairs);
       setPairMatchedUsers(nodeDatum.matchingPairs);
       document.getElementById('viewModal').showModal();
     } else {
@@ -193,8 +198,9 @@ function InternalPage() {
     }),
     // validateOnMount: true,
     // validateOnChange: false,
-    onSubmit: async values => {
+    onSubmit: async (values, { setSubmitting }) => {
       try {
+        setSubmitting(true);
         let res = await axios({
           method: 'POST',
           url: 'user/createChildren',
@@ -204,8 +210,32 @@ function InternalPage() {
             targetUserID: values.targetUserID
           }
         });
+        toast.success('Created Successfully', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
+        // reload
+        getTreeStructure();
+        fetchUsers();
       } catch (error) {
+        toast.error('Something went wrong', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
       } finally {
+        setSubmitting(false);
         document.getElementById('createChildModal').close();
       }
     }
@@ -221,6 +251,17 @@ function InternalPage() {
       </div>
     );
   };
+
+  const approvedTransaction = async ({ ID }) => {
+    await axios({
+      method: 'POST',
+      url: 'transaction/approvedMatching',
+      data: {
+        ID
+      }
+    });
+    console.log(ID);
+  };
   return (
     <Formik {...formikConfig}>
       {({
@@ -234,7 +275,8 @@ function InternalPage() {
         setFieldTouched,
         setFieldValue,
         setFieldError,
-        setErrors
+        setErrors,
+        isSubmitting
       }) => {
         return (
           <div ref={treeContainerRef} style={{ height: '100vh' }}>
@@ -329,14 +371,14 @@ function InternalPage() {
                   <button
                     type="submit"
                     className="btn mt-2 justify-end  btn-primary float-right"
-                    onClick={() => {}}>
+                    disabled={isSubmitting}>
                     Submit
                   </button>
                 </Form>
               </div>
             </dialog>
             <dialog id="viewModal" className="modal">
-              <div className="modal-box w-11/12 max-w-3xl">
+              <div className="modal-box w-11/12 max-w-4xl">
                 <form method="dialog">
                   {/* if there is a button in form, it will close the modal */}
                   <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
@@ -351,8 +393,9 @@ function InternalPage() {
                       {/* head */}
                       <thead>
                         <tr>
-                          <th>Left Match</th>
-                          <th>Righ Match</th>
+                          <th>Level</th>
+                          <th>User 1</th>
+                          <th>User 2</th>
                           <th>Amount</th>
                           <th>Status</th>
                           <th>Action</th>
@@ -362,12 +405,17 @@ function InternalPage() {
                         {/* row 1 */}
                         {pairMatchedUsers.map(data => {
                           let user = data.users;
+                          let depthLevel = data.targetDepthLevel.low;
 
                           let left = user[0];
                           let right = user[1];
 
+                          let ID = data.ID;
+                          let status = data.status;
+
                           return (
                             <tr>
+                              <td>{depthLevel + 1}</td>
                               <td>
                                 <div className="flex items-center gap-3">
                                   <div className="avatar">
@@ -384,7 +432,6 @@ function InternalPage() {
                                 </div>
                               </td>
                               <td>
-                                {' '}
                                 <div className="flex items-center gap-3">
                                   <div className="avatar">
                                     {avatarComponent()}
@@ -400,12 +447,29 @@ function InternalPage() {
                                 </div>
                               </td>
                               <td>Php 1000</td>
-                              <td>Pending</td>
+                              <td>
+                                <div
+                                  className={`text-white badge    ${
+                                    status === 'COMPLETED'
+                                      ? `badge-success`
+                                      : 'badge-warning'
+                                  } gap-2`}>
+                                  {status}
+                                </div>
+                              </td>
                               <th>
-                                <button className="btn btn-outline btn-sm ml-2 btn-success">
-                                  Approve
-                                  <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                                </button>
+                                {status !== 'COMPLETED' ? (
+                                  <button
+                                    className="btn btn-outline btn-sm ml-2 btn-success"
+                                    onClick={async () =>
+                                      await approvedTransaction({ ID })
+                                    }>
+                                    Approve
+                                    <CheckCircleIcon className="h-1 w-1 text-green-500" />
+                                  </button>
+                                ) : (
+                                  <div className="indicator"></div>
+                                )}
                               </th>
                             </tr>
                           );
@@ -417,6 +481,7 @@ function InternalPage() {
                 </Form>
               </div>
             </dialog>
+            <ToastContainer />
           </div>
         );
       }}

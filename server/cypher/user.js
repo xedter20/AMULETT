@@ -119,8 +119,7 @@ export const getChildren = ({ ID, isSourceRootNode }) => {
       ${isSourceRootNode ? 'isRootNode : true ' : `ID:'${ID}'`} 
     
     
-    }) 
-     MATCH(parent)-[e:has_invite]->(child) 
+    })-[e:has_invite]->(child) 
      RETURN  COLLECT(properties(child)) as children
 
     

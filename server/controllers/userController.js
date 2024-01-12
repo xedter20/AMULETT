@@ -379,6 +379,8 @@ export const getTreeStructure = async (req, res, next) => {
     );
     let result = data.records[0]._fields;
 
+    console.log(result);
+
     let getAllMatchPairByIdQuery = await cypherQuerySession.executeQuery(
       getAllMatchPairById({ ID: false })
     );
@@ -437,12 +439,12 @@ export const createChildren = async (req, res, next) => {
     if (position && parentNodeID && targetUserID) {
       const result = createdUser.records[0]._fields[0];
 
-      // await cypherQuerySession.executeQuery(
-      //   createRelationShipQuery({
-      //     parentId: parentNodeID,
-      //     ID: result.ID
-      //   })
-      // );
+      await cypherQuerySession.executeQuery(
+        createRelationShipQuery({
+          parentId: parentNodeID,
+          ID: result.ID
+        })
+      );
 
       const checkParentNodeIfPairExistQuery =
         await cypherQuerySession.executeQuery(
@@ -563,7 +565,7 @@ export const createChildren = async (req, res, next) => {
             );
             let [{ low }] = isAliasExistOnDbQuery.records[0]._fields;
             let isAliasExistOnDb = low > 0;
-            console.log({ ID: parent.ID, isAliasExistOnDb });
+            console.log({ ID: parent.ID, currentAlias });
 
             if (!isAliasExistOnDb) {
               await cypherQuerySession.executeQuery(
@@ -620,6 +622,7 @@ export const getUserNodeWithChildren = async (req, res, next) => {
         availablePosition = [{ value: 'RIGHT', label: 'Right' }];
       }
     }
+
     res.json({ success: true, data: availablePosition });
   } catch (error) {
     res.status(400).send(error.message);

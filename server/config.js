@@ -3,14 +3,29 @@ import assert from 'assert';
 
 import neo4j from 'neo4j-driver';
 
-let driver = neo4j.driver(
-  'neo4j://localhost',
-  neo4j.auth.basic('neo4j', 'password')
-);
+// let driver = neo4j.driver(
+//   'neo4j://localhost',
+//   neo4j.auth.basic('neo4j', 'password')
+// );
 
-const serverInfo = await driver.getServerInfo();
-console.log('Connection established');
-console.log(serverInfo);
+// const serverInfo = await driver.getServerInfo();
+// console.log('Connection established');
+// console.log(serverInfo);
+let driver;
+(async () => {
+  const URI = 'neo4j+s://03d31fd4.databases.neo4j.io';
+  const USER = 'neo4j';
+  const PASSWORD = '4qCBNMw3fMXsslv6kO6z-j_sSqX-2ZwkIvjGVrM7urA';
+
+  try {
+    driver = neo4j.driver(URI, neo4j.auth.basic(USER, PASSWORD));
+    const serverInfo = await driver.getServerInfo();
+    console.log('Connection established');
+    console.log(serverInfo);
+  } catch (err) {
+    console.log(`Connection error\n${err}\nCause: ${err.cause}`);
+  }
+})();
 
 let cypherQuerySession = driver;
 

@@ -101,7 +101,7 @@ export const addPairingNode = params => {
   return queryText;
 };
 
-export const getAllMatchPairById = ({ ID = false }) => {
+export const getAllMatchPairById = ({ ID = false, status = 'PENDING' }) => {
   const queryText = `
 
   ${
@@ -116,10 +116,14 @@ export const getAllMatchPairById = ({ ID = false }) => {
   `
       : `
       
-   MATCH (target_user:User)
+    MATCH (User)-[:has_invite]-> (target_user:User)
+
     MATCH (pairing:Pairing)
-   
+
     where target_user.ID_ALIAS IN pairing.aliasSet
+
+
+
     with  pairing, COLLECT({
         INDEX_PLACEMENT: target_user.INDEX_PLACEMENT,
         email : target_user.email,
@@ -132,16 +136,70 @@ export const getAllMatchPairById = ({ ID = false }) => {
     
 
     RETURN collect({
+        ID: pairing.ID,
         status: pairing.status,
         source_user_id: pairing.source_user_id,
          name: pairing.name,
-         users : u_list
+        targetDepthLevel: pairing.targetDepthLevel,
+        users : u_list
 
     })
       
       `
   }
   
+
+  `;
+
+  return queryText;
+};
+
+export const getPairingNode = ({ ID, userId, status }) => {
+  const queryText = `
+
+  ${
+    userId
+      ? `MATCH (u:User {
+    ID: '${userId}'
+  })-[e:has_pair_match]-> (pairing: Pairing {
+
+    status: '${status}'
+  })
+
+return collect(properties(pairing)) as pairings
+
+  
+  
+  
+  `
+      : `
+    MATCH( pairing:Pairing {
+       ID: '${ID}'
+    } ) 
+
+     
+    RETURN properties(pairing) as details 
+      
+      
+      `
+  }
+  
+
+
+  `;
+
+  return queryText;
+};
+
+export const updatePairingNode = data => {
+  let { ID, ...otherParams } = data;
+  const queryText = `
+    MATCH( pairing:Pairing {
+       ID: '${ID}'
+    } ) 
+
+   SET pairing += ${util.inspect(otherParams)}
+   RETURN properties(pairing) as details
 
   `;
 
